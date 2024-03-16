@@ -1,5 +1,6 @@
 import numpy as np
-    
+
+
 class ADAM:
     def __init__(self, model, stop_condition, learning_rate=.001, beta1=.9, beta2=.999, epsilon=1e-8, batch_size=1):
         self.model = model
