@@ -14,29 +14,30 @@ class MaxIterationCondition:
 
 
 class NoLogLikImprovementCondition:
-    def __init__(self, threshold=1e-6):
-        self.last_scores = []
+    def __init__(self, patience=3):
         self.epoch = -2
-        self.threshold = threshold
+        self.last_improvement_epoch = 0
+        self.best_score = 1e10
+        self.patience = patience
 
     def __call__(self, model=None, x=None, y=None, **kwargs):
         self.epoch += 1
         if self.epoch < 0:
             return False
-        loglik = np.sum(-np.log(np.exp(model.weights @ x.T)) + y * (model.weights @ x.T))
-        if self.last_scores:
-            if loglik - self.last_scores[-1] <= self.threshold:
-                return True
-        self.last_scores.append(loglik)
+        prediction = np.clip(model.predict(x), 1e-10, 1 - 1e-10)
+        loglik = - np.mean(y * np.log(prediction) + (1 - y) * np.log(1 - prediction))
+        if loglik >= self.best_score and self.epoch - self.last_improvement_epoch >= self.patience:
+            return True
+        elif loglik < self.best_score:
+            self.best_score = loglik
+            self.last_improvement_epoch = self.epoch
         return False
 
 
 class NoLogLikOrMaxIterCondition(NoLogLikImprovementCondition):
-    def __init__(self, max_iterations=10, threshold=1e-6):
-        super().__init__(threshold)
+    def __init__(self, max_iterations=10, patience=3):
+        super().__init__(patience)
         self.max_iterations = max_iterations
 
     def __call__(self, model=None, x=None, y=None, **kwargs):
-        if self.epoch > self.max_iterations:
-            return True
-        super().__call__(model=model, x=x, y=y, **kwargs)
+        return self.epoch > self.max_iterations or super().__call__(model=model, x=x, y=y, **kwargs)
