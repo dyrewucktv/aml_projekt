@@ -22,6 +22,7 @@ class NoLogLikImprovementCondition:
         self.best_model = None
 
     def __call__(self, model=None, x=None, y=None, **kwargs):
+        self.best_model = self.best_model or model
         self.epoch += 1
         if self.epoch < 0:
             return False

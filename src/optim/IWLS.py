@@ -19,7 +19,7 @@ class IWLS:
         self.model = model
         self.stop_condition = stop_condition
         self.delta = delta
-        self.lambda_ = 1e-5
+        self.lambda_ = lambda_
 
     def optimize(self, x, y):
         while not self.stop_condition(model=self.model, x=x, y=y):
