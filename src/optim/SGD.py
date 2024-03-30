@@ -16,4 +16,4 @@ class SGD:
                 probs = self.model.predict_probs(x[sample, :])
                 self.model.weights = self.model.weights - self.learning_rate * np.mean(
                     np.mean(probs - y[sample]) * x[sample], axis=0)
-        return self.model
+        return self.stop_condition.best_model if hasattr(self.stop_condition, 'best_model') else self.model
