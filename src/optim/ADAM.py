@@ -27,4 +27,4 @@ class ADAM:
                 m_hat = self.m / (1 - self.beta1 ** self.t)
                 v_hat = self.v / (1 - self.beta2 ** self.t)
                 self.model.weights = self.model.weights - self.learning_rate * m_hat / (np.sqrt(v_hat) + self.epsilon)
-        return self.model
+        return self.stop_condition.best_model if hasattr(self.stop_condition, 'best_model') else self.model

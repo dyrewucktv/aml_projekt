@@ -19,6 +19,7 @@ class NoLogLikImprovementCondition:
         self.last_improvement_epoch = 0
         self.best_score = 1e10
         self.patience = patience
+        self.best_model = None
 
     def __call__(self, model=None, x=None, y=None, **kwargs):
         self.epoch += 1
@@ -31,6 +32,7 @@ class NoLogLikImprovementCondition:
         elif loglik < self.best_score:
             self.best_score = loglik
             self.last_improvement_epoch = self.epoch
+            self.best_model = model
         return False
 
 
