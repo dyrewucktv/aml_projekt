@@ -15,6 +15,7 @@ class ADAM:
         self.t = 0
 
     def optimize(self, x, y):
+        logliks = []
         while not self.stop_condition(model=self.model, x=x, y=y):
             permutation = np.random.permutation(len(y))
             for ix in range(0, len(y), self.batch_size):
@@ -27,4 +28,7 @@ class ADAM:
                 m_hat = self.m / (1 - self.beta1 ** self.t)
                 v_hat = self.v / (1 - self.beta2 ** self.t)
                 self.model.weights = self.model.weights - self.learning_rate * m_hat / (np.sqrt(v_hat) + self.epsilon)
-        return self.stop_condition.best_model if hasattr(self.stop_condition, 'best_model') else self.model
+            prediction = np.clip(self.model.predict(x), 1e-10, 1 - 1e-10)
+            loglik = - np.mean(y * np.log(prediction) + (1 - y) * np.log(1 - prediction))
+            logliks.append(loglik)
+        return self.stop_condition.best_model if hasattr(self.stop_condition, 'best_model') else self.model, logliks

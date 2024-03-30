@@ -9,6 +9,7 @@ class SGD:
         self.batch_size = batch_size
 
     def optimize(self, x, y):
+        logliks = []
         while not self.stop_condition(model=self.model, x=x, y=y):
             permutation = np.random.permutation(len(y))
             for ix in range(0, len(y), self.batch_size):
@@ -16,4 +17,7 @@ class SGD:
                 probs = self.model.predict_probs(x[sample, :])
                 self.model.weights = self.model.weights - self.learning_rate * np.mean(
                     np.mean(probs - y[sample]) * x[sample], axis=0)
-        return self.stop_condition.best_model if hasattr(self.stop_condition, 'best_model') else self.model
+            prediction = np.clip(self.model.predict(x), 1e-10, 1 - 1e-10)
+            loglik = - np.mean(y * np.log(prediction) + (1 - y) * np.log(1 - prediction))
+            logliks.append(loglik)
+        return self.stop_condition.best_model if hasattr(self.stop_condition, 'best_model') else self.model, logliks
