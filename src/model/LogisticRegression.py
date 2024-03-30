@@ -2,8 +2,7 @@ import numpy as np
 
 
 class LogisticRegression:
-    def __init__(self, method=None):
-        self.method = method
+    def __init__(self):
         self.weights = None
 
     def predict_probs(self, x):
@@ -12,4 +11,4 @@ class LogisticRegression:
         return 1 / (1 + np.exp(-self.weights @ x.T))
 
     def predict(self, x):
-        return (self.predict_probs(x) > .5).astype(int)
+        return (self.predict_probs(x) > 0.5).astype(int)
