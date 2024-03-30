@@ -83,7 +83,7 @@ def eval_iwls(
         model,
         NoLogLikOrMaxIterCondition(max_iterations, patience),
     )
-    model = optim.optimize(train_x, train_y)
+    model, logliks = optim.optimize(train_x, train_y)
 
     end = time.perf_counter()
 
@@ -96,7 +96,7 @@ def eval_iwls(
         pred_y=model.predict(test_x),
         random_state=random_state,
         num_iters=optim.stop_condition.epoch,
-    )
+    ), logliks
 
 
 def eval_sgd(
@@ -122,7 +122,7 @@ def eval_sgd(
         learning_rate=learning_rate,
         batch_size=batch_size,
     )
-    model = optim.optimize(train_x, train_y)
+    model, logliks = optim.optimize(train_x, train_y)
 
     end = time.perf_counter()
 
@@ -135,7 +135,7 @@ def eval_sgd(
         pred_y=model.predict(test_x),
         random_state=random_state,
         num_iters=optim.stop_condition.epoch,
-    )
+    ), logliks
 
 
 def eval_adam(
@@ -161,7 +161,7 @@ def eval_adam(
         learning_rate=learning_rate,
         batch_size=batch_size,
     )
-    model = optim.optimize(train_x, train_y)
+    model, logliks = optim.optimize(train_x, train_y)
 
     end = time.perf_counter()
 
@@ -174,7 +174,7 @@ def eval_adam(
         pred_y=model.predict(test_x),
         random_state=random_state,
         num_iters=optim.stop_condition.epoch,
-    )
+    ), logliks
 
 
 def eval_lda(
