@@ -16,13 +16,15 @@ class ADAM:
 
     def optimize(self, x, y):
         while not self.stop_condition(model=self.model, x=x, y=y):
-            sample = np.random.choice(range(len(y)), self.batch_size)
-            probs = self.model.predict_probs(x[sample, :])
-            gradient = np.mean(np.mean(probs - y[sample]) * x[sample], axis=0)
-            self.t += 1
-            self.m = self.beta1 * self.m + (1 - self.beta1) * gradient
-            self.v = self.beta2 * self.v + (1 - self.beta2) * gradient ** 2
-            m_hat = self.m / (1 - self.beta1 ** self.t)
-            v_hat = self.v / (1 - self.beta2 ** self.t)
-            self.model.weights = self.model.weights - self.learning_rate * m_hat / (np.sqrt(v_hat) + self.epsilon)
+            permutation = np.random.permutation(len(y))
+            for ix in range(0, len(y), self.batch_size):
+                sample = permutation[ix:ix + self.batch_size]
+                probs = self.model.predict_probs(x[sample, :])
+                gradient = np.mean(np.mean(probs - y[sample]) * x[sample], axis=0)
+                self.t += 1
+                self.m = self.beta1 * self.m + (1 - self.beta1) * gradient
+                self.v = self.beta2 * self.v + (1 - self.beta2) * gradient ** 2
+                m_hat = self.m / (1 - self.beta1 ** self.t)
+                v_hat = self.v / (1 - self.beta2 ** self.t)
+                self.model.weights = self.model.weights - self.learning_rate * m_hat / (np.sqrt(v_hat) + self.epsilon)
         return self.model

@@ -10,8 +10,10 @@ class SGD:
 
     def optimize(self, x, y):
         while not self.stop_condition(model=self.model, x=x, y=y):
-            sample = np.random.choice(range(len(y)), self.batch_size)
-            probs = self.model.predict_probs(x[sample, :])
-            self.model.weights = self.model.weights - self.learning_rate * np.mean(
-                np.mean(probs - y[sample]) * x[sample], axis=0)
+            permutation = np.random.permutation(len(y))
+            for ix in range(0, len(y), self.batch_size):
+                sample = permutation[ix:ix + self.batch_size]
+                probs = self.model.predict_probs(x[sample, :])
+                self.model.weights = self.model.weights - self.learning_rate * np.mean(
+                    np.mean(probs - y[sample]) * x[sample], axis=0)
         return self.model
