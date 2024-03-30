@@ -37,17 +37,19 @@ class DataLoader:
             y = y[~np.isnan(x).any(axis=1)]
             x = x[~np.isnan(x).any(axis=1)]
 
-            collinear_features = np.where(np.abs(np.corrcoef(x, rowvar=False)) > 0.75)
-            collinear_features = np.unique(collinear_features[0][collinear_features[0] != collinear_features[1]])
-            x = np.delete(x, collinear_features, axis=1)
-
             if self.product:
                 cols = []
                 for col1, col2 in combinations(range(x.shape[1]), 2):
                     cols.append(x[:, col1] * x[:, col2])
                 x = np.column_stack((x, *cols))
 
-            x = np.concatenate((np.ones((x.shape[0], 1)), x), axis=1)
+            collinear_features = np.where(np.abs(np.corrcoef(x, rowvar=False)) > 0.75)
+            collinear_features = np.unique(collinear_features[0][collinear_features[0] != collinear_features[1]])
+            x = np.delete(x, collinear_features, axis=1)
+
+            sparse_counts = np.isclose(x, 0, atol=1e-4).sum(axis=0)
+            sparse_features = np.where(sparse_counts / x.shape[0] > 0.85)[0]
+            x = np.delete(x, sparse_features, axis=1)
 
             self.data[item] = (x, y)
 

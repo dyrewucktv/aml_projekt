@@ -8,6 +8,7 @@ from sklearn.discriminant_analysis import (
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import balanced_accuracy_score
 from sklearn.model_selection import GridSearchCV, train_test_split
+from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 
 from src.data_loader.DataLoader import DataLoader
@@ -18,7 +19,9 @@ from src.optim.IWLS import IWLS
 from src.optim.SGD import SGD
 
 
-def _prepare_data(loader: DataLoader, dataset: str, random_state: int) -> tuple[
+def _prepare_data(
+    loader: DataLoader, dataset: str, random_state: int, return_ones_col: bool = True
+) -> tuple[
     np.array,
     np.array,
     np.array,
@@ -27,7 +30,18 @@ def _prepare_data(loader: DataLoader, dataset: str, random_state: int) -> tuple[
     np.random.seed(random_state)
 
     x, y = loader[dataset]
+
+    if return_ones_col:
+        x = np.concatenate((np.ones((x.shape[0], 1)), x), axis=1)
+
     return train_test_split(x, y, test_size=0.3, stratify=y, random_state=random_state)
+
+
+def _scale_data(train_x: np.array, test_x: np.array) -> tuple[np.array, np.array]:
+    scaler = StandardScaler()
+    scaler.fit(train_x)
+
+    return scaler.transform(train_x), scaler.transform(test_x)
 
 
 def _return_dict(
@@ -57,7 +71,10 @@ def eval_iwls(
     max_iterations: int = 500,
     patience: int = 5,
 ) -> dict:
-    train_x, test_x, train_y, test_y = _prepare_data(loader, dataset, random_state)
+    train_x, test_x, train_y, test_y = _prepare_data(
+        loader, dataset, random_state, return_ones_col=True
+    )
+    train_x, test_x = _scale_data(train_x, test_x)
 
     start = time.perf_counter()
 
@@ -88,10 +105,13 @@ def eval_sgd(
     random_state: int,
     max_iterations: int = 500,
     patience: int = 5,
+    learning_rate: float = 0.1,
     batch_size: int = 1,
-    learning_rate: float = 0.01
 ) -> dict:
-    train_x, test_x, train_y, test_y = _prepare_data(loader, dataset, random_state)
+    train_x, test_x, train_y, test_y = _prepare_data(
+        loader, dataset, random_state, return_ones_col=True
+    )
+    train_x, test_x = _scale_data(train_x, test_x)
 
     start = time.perf_counter()
 
@@ -99,8 +119,8 @@ def eval_sgd(
     optim = SGD(
         model,
         NoLogLikOrMaxIterCondition(max_iterations, patience),
+        learning_rate=learning_rate,
         batch_size=batch_size,
-        learning_rate=learning_rate
     )
     model = optim.optimize(train_x, train_y)
 
@@ -124,10 +144,13 @@ def eval_adam(
     random_state: int,
     max_iterations: int = 500,
     patience: int = 5,
+    learning_rate: float = 0.01,
     batch_size: int = 1,
-    learning_rate: float = 0.01
 ) -> dict:
-    train_x, test_x, train_y, test_y = _prepare_data(loader, dataset, random_state)
+    train_x, test_x, train_y, test_y = _prepare_data(
+        loader, dataset, random_state, return_ones_col=True
+    )
+    train_x, test_x = _scale_data(train_x, test_x)
 
     start = time.perf_counter()
 
@@ -135,8 +158,8 @@ def eval_adam(
     optim = ADAM(
         model,
         NoLogLikOrMaxIterCondition(max_iterations, patience),
+        learning_rate=learning_rate,
         batch_size=batch_size,
-        learning_rate=learning_rate
     )
     model = optim.optimize(train_x, train_y)
 
@@ -159,7 +182,10 @@ def eval_lda(
     dataset: str,
     random_state: int,
 ) -> dict:
-    train_x, test_x, train_y, test_y = _prepare_data(loader, dataset, random_state)
+    train_x, test_x, train_y, test_y = _prepare_data(
+        loader, dataset, random_state, return_ones_col=False
+    )
+    train_x, test_x = _scale_data(train_x, test_x)
 
     start = time.perf_counter()
 
@@ -184,11 +210,14 @@ def eval_qda(
     dataset: str,
     random_state: int,
 ) -> dict:
-    train_x, test_x, train_y, test_y = _prepare_data(loader, dataset, random_state)
+    train_x, test_x, train_y, test_y = _prepare_data(
+        loader, dataset, random_state, return_ones_col=False
+    )
+    train_x, test_x = _scale_data(train_x, test_x)
 
     start = time.perf_counter()
 
-    model = QuadraticDiscriminantAnalysis()
+    model = QuadraticDiscriminantAnalysis(reg_param=0.1, tol=1e-8)
     model.fit(train_x, train_y)
 
     end = time.perf_counter()
@@ -205,15 +234,15 @@ def eval_qda(
 
 
 def eval_tree(
-    loader: DataLoader,
-    dataset: str,
-    random_state: int,
-    param_grid: list = None
+    loader: DataLoader, dataset: str, random_state: int, param_grid: list = None
 ) -> dict:
     if param_grid is None:
-        param_grid={"max_depth": [4, 6, 10, 16, None]}
+        param_grid = {"max_depth": [4, 6, 10, 16, None]}
 
-    train_x, test_x, train_y, test_y = _prepare_data(loader, dataset, random_state)
+    train_x, test_x, train_y, test_y = _prepare_data(
+        loader, dataset, random_state, return_ones_col=False
+    )
+    train_x, test_x = _scale_data(train_x, test_x)
 
     start = time.perf_counter()
 
@@ -238,15 +267,15 @@ def eval_tree(
 
 
 def eval_random_forest(
-    loader: DataLoader,
-    dataset: str,
-    random_state: int,
-    param_grid: list = None
+    loader: DataLoader, dataset: str, random_state: int, param_grid: list = None
 ) -> dict:
     if param_grid is None:
-        param_grid={"max_depth": [4, 6, 10, 16, None]}
+        param_grid = {"max_depth": [4, 6, 10, 16, None]}
 
-    train_x, test_x, train_y, test_y = _prepare_data(loader, dataset, random_state)
+    train_x, test_x, train_y, test_y = _prepare_data(
+        loader, dataset, random_state, return_ones_col=False
+    )
+    train_x, test_x = _scale_data(train_x, test_x)
 
     start = time.perf_counter()
 
