@@ -33,14 +33,13 @@ class DataLoader:
             y_counts = np.unique(data[:, -1], return_counts=True)
             majority_class = y_counts[1].argmax()
             y = np.array([0 if _y == y_counts[0][majority_class] else 1 for _y in data[:, -1]], dtype=float)
-            
+
             y = y[~np.isnan(x).any(axis=1)]
             x = x[~np.isnan(x).any(axis=1)]
 
             collinear_features = np.where(np.abs(np.corrcoef(x, rowvar=False)) > 0.75)
             collinear_features = np.unique(collinear_features[0][collinear_features[0] != collinear_features[1]])
             x = np.delete(x, collinear_features, axis=1)
-            print(x.shape)
 
             if self.product:
                 cols = []
