@@ -121,7 +121,6 @@ def eval_sgd(
         NoLogLikOrMaxIterCondition(max_iterations, patience),
         learning_rate=learning_rate,
         batch_size=batch_size,
-        learning_rate=learning_rate
     )
     model = optim.optimize(train_x, train_y)
 
@@ -145,7 +144,7 @@ def eval_adam(
     random_state: int,
     max_iterations: int = 500,
     patience: int = 5,
-    learning_rate: float = 0.01
+    learning_rate: float = 0.01,
     batch_size: int = 1,
 ) -> dict:
     train_x, test_x, train_y, test_y = _prepare_data(
@@ -159,8 +158,8 @@ def eval_adam(
     optim = ADAM(
         model,
         NoLogLikOrMaxIterCondition(max_iterations, patience),
+        learning_rate=learning_rate,
         batch_size=batch_size,
-        learning_rate=learning_rate
     )
     model = optim.optimize(train_x, train_y)
 
