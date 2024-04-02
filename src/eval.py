@@ -70,7 +70,7 @@ def eval_iwls(
     random_state: int,
     max_iterations: int = 500,
     patience: int = 5,
-) -> dict:
+) -> tuple[dict, list[np.float64]]:
     train_x, test_x, train_y, test_y = _prepare_data(
         loader, dataset, random_state, return_ones_col=True
     )
@@ -87,16 +87,19 @@ def eval_iwls(
 
     end = time.perf_counter()
 
-    return _return_dict(
-        dataset=dataset,
-        method="IWLS",
-        start_time=start,
-        end_time=end,
-        test_y=test_y,
-        pred_y=model.predict(test_x),
-        random_state=random_state,
-        num_iters=optim.stop_condition.epoch,
-    ), logliks
+    return (
+        _return_dict(
+            dataset=dataset,
+            method="IWLS",
+            start_time=start,
+            end_time=end,
+            test_y=test_y,
+            pred_y=model.predict(test_x),
+            random_state=random_state,
+            num_iters=optim.stop_condition.epoch,
+        ),
+        logliks,
+    )
 
 
 def eval_sgd(
@@ -107,7 +110,7 @@ def eval_sgd(
     patience: int = 5,
     learning_rate: float = 0.1,
     batch_size: int = 1,
-) -> dict:
+) -> tuple[dict, list[np.float64]]:
     train_x, test_x, train_y, test_y = _prepare_data(
         loader, dataset, random_state, return_ones_col=True
     )
@@ -126,16 +129,19 @@ def eval_sgd(
 
     end = time.perf_counter()
 
-    return _return_dict(
-        dataset=dataset,
-        method="SGD",
-        start_time=start,
-        end_time=end,
-        test_y=test_y,
-        pred_y=model.predict(test_x),
-        random_state=random_state,
-        num_iters=optim.stop_condition.epoch,
-    ), logliks
+    return (
+        _return_dict(
+            dataset=dataset,
+            method="SGD",
+            start_time=start,
+            end_time=end,
+            test_y=test_y,
+            pred_y=model.predict(test_x),
+            random_state=random_state,
+            num_iters=optim.stop_condition.epoch,
+        ),
+        logliks,
+    )
 
 
 def eval_adam(
@@ -146,7 +152,7 @@ def eval_adam(
     patience: int = 5,
     learning_rate: float = 0.01,
     batch_size: int = 1,
-) -> dict:
+) -> tuple[dict, list[np.float64]]:
     train_x, test_x, train_y, test_y = _prepare_data(
         loader, dataset, random_state, return_ones_col=True
     )
@@ -165,16 +171,19 @@ def eval_adam(
 
     end = time.perf_counter()
 
-    return _return_dict(
-        dataset=dataset,
-        method="ADAM",
-        start_time=start,
-        end_time=end,
-        test_y=test_y,
-        pred_y=model.predict(test_x),
-        random_state=random_state,
-        num_iters=optim.stop_condition.epoch,
-    ), logliks
+    return (
+        _return_dict(
+            dataset=dataset,
+            method="ADAM",
+            start_time=start,
+            end_time=end,
+            test_y=test_y,
+            pred_y=model.predict(test_x),
+            random_state=random_state,
+            num_iters=optim.stop_condition.epoch,
+        ),
+        logliks,
+    )
 
 
 def eval_lda(
