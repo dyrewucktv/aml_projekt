@@ -1,8 +1,11 @@
 import numpy as np
 
+from src.optim.BaseOptimizer import BaseOptimizer
 
-class SGD:
-    def __init__(self, model, stop_condition, learning_rate=.001, batch_size=1):
+
+class SGD(BaseOptimizer):
+    def __init__(self, model, stop_condition, learning_rate=.01, batch_size=1):
+        super().__init__(model, stop_condition)
         self.model = model
         self.stop_condition = stop_condition
         self.learning_rate = learning_rate
@@ -17,7 +20,6 @@ class SGD:
                 probs = self.model.predict_probs(x[sample, :])
                 self.model.weights = self.model.weights - self.learning_rate * np.mean(
                     np.mean(probs - y[sample]) * x[sample], axis=0)
-            prediction = np.clip(self.model.predict(x), 1e-10, 1 - 1e-10)
-            loglik = - np.mean(y * np.log(prediction) + (1 - y) * np.log(1 - prediction))
+            loglik, accuracy = self.score(x, y)
             logliks.append(loglik)
         return self.stop_condition.best_model if hasattr(self.stop_condition, 'best_model') else self.model, logliks

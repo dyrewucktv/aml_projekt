@@ -26,7 +26,7 @@ class NoLogLikImprovementCondition:
         self.epoch += 1
         if self.epoch < 0:
             return False
-        prediction = np.clip(model.predict(x), 1e-10, 1 - 1e-10)
+        prediction = np.clip(model.predict_probs(x), 1e-10, 1 - 1e-10)
         loglik = - np.mean(y * np.log(prediction) + (1 - y) * np.log(1 - prediction))
         if loglik >= self.best_score and self.epoch - self.last_improvement_epoch >= self.patience:
             return True

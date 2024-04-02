@@ -1,8 +1,11 @@
 import numpy as np
 
+from src.optim.BaseOptimizer import BaseOptimizer
 
-class ADAM:
-    def __init__(self, model, stop_condition, learning_rate=.001, beta1=.9, beta2=.999, epsilon=1e-8, batch_size=1):
+
+class ADAM(BaseOptimizer):
+    def __init__(self, model, stop_condition, learning_rate=.01, beta1=.9, beta2=.999, epsilon=1e-8, batch_size=1):
+        super().__init__(model, stop_condition)
         self.model = model
         self.stop_condition = stop_condition
         self.learning_rate = learning_rate
@@ -28,7 +31,6 @@ class ADAM:
                 m_hat = self.m / (1 - self.beta1 ** self.t)
                 v_hat = self.v / (1 - self.beta2 ** self.t)
                 self.model.weights = self.model.weights - self.learning_rate * m_hat / (np.sqrt(v_hat) + self.epsilon)
-            prediction = np.clip(self.model.predict(x), 1e-10, 1 - 1e-10)
-            loglik = - np.mean(y * np.log(prediction) + (1 - y) * np.log(1 - prediction))
+            loglik, accuracy = self.score(x, y)
             logliks.append(loglik)
         return self.stop_condition.best_model if hasattr(self.stop_condition, 'best_model') else self.model, logliks
